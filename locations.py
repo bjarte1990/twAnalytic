@@ -1,10 +1,49 @@
 import urllib
 import json
 import time
+import twurl
+import re
+import locations
 
-serviceurl='http://maps.googleapis.com/maps/api/geocode/json?'
+GOOGLEMAPS_URL='http://maps.googleapis.com/maps/api/geocode/json?'
+
+TWITTER_URL='https://api.twitter.com/1.1/search/tweets.json'
+
+def twitterLocation(query, tweetNum=10):
+	url = twurl.augment(TWITTER_URL,{'q': query, 'count': tweetNum})
+
+	#print 'Retrieving ',url
+
+	connection=urllib.urlopen(url)
+	data=connection.read().decode("utf-8","replace")
+	headers=connection.info().dict
+	js=json.loads(data)
+	#print json.dumps(js,indent=4)
+
+	statuses=js['statuses']
+
+	locationList=[]
+	for tweet in statuses:
+		user=tweet['user']
+		try:
+			#print tweet['text']
+			#print user['location'],'\n'
+			location=user['location']
+			if location:
+				twitterData=dict()
+				twitterData['tweet']=tweet['text']
+				twitterData['location']=location
+				locationList.append(twitterData)
+		except UnicodeEncodeError:
+			#print '.....Encoding error.....\n'
+			continue
+			
+	print 'Remaining: ',headers['x-rate-limit-remaining']
+
+	return locationList
 
 def getLatLong(addresses):
+	#Retrievs geocodes of given addresses using google maps API
 	locationData=[]
 	i=0
 	for a in addresses:
@@ -13,7 +52,7 @@ def getLatLong(addresses):
 			if i==9:
 				i=0
 				time.sleep(10)
-			url=serviceurl+urllib.urlencode({'sensor':'false', 'address': a})
+			url=GOOGLEMAPS_URL+urllib.urlencode({'sensor':'false', 'address': a})
 			#print 'Retrieving ',url
 			html=urllib.urlopen(url).read()
 
