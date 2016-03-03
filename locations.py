@@ -3,24 +3,14 @@ import json
 import time
 import twurl
 import re
-import locations
+import twitterHandler
 
 GOOGLEMAPS_URL='http://maps.googleapis.com/maps/api/geocode/json?'
 
-TWITTER_URL='https://api.twitter.com/1.1/search/tweets.json'
-
-def twitterLocation(query, tweetNum=10):
-	url = twurl.augment(TWITTER_URL,{'q': query, 'count': tweetNum})
-
-	#print 'Retrieving ',url
-
-	connection=urllib.urlopen(url)
-	data=connection.read().decode("utf-8","replace")
-	headers=connection.info().dict
-	js=json.loads(data)
-	#print json.dumps(js,indent=4)
-
-	statuses=js['statuses']
+def twitterLocation(content, tweetNum=10):
+	
+	tweetJson=twitterHandler.getTweetsByContent(content, tweetNum)
+	statuses=tweetJson['statuses']
 
 	locationList=[]
 	for tweet in statuses:
@@ -38,7 +28,6 @@ def twitterLocation(query, tweetNum=10):
 			#print '.....Encoding error.....\n'
 			continue
 			
-	print 'Remaining: ',headers['x-rate-limit-remaining']
 
 	return locationList
 
