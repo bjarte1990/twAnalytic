@@ -11,6 +11,13 @@ import twitterHandler
 #	print tw['tweet']
 #	print '\t'+tw['location']
 
-tweetsByUser=twitterHandler.getTweetsByUser('OW_Zoly',2)
+#tweetsByUser=twitterHandler.getTweetsByUser('OW_Zoly',2)
 
-print tweetsByUser
+#print tweetsByUser
+
+userFollowers=twitterHandler.getFollowersRecursively('csaba_pigler',2)
+
+for user in userFollowers:
+	print user['name']
+	print user['followers']
+	print '---------------------------------------'

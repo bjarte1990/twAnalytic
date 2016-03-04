@@ -5,6 +5,7 @@ import re
 
 TWEET_URL = 'https://api.twitter.com/1.1/search/tweets.json'
 USER_URL = 'https://api.twitter.com/1.1/statuses/user_timeline.json'
+FOLLOWERS_URL = 'https://api.twitter.com/1.1/followers/list.json'
 
 def getData(url):
 
@@ -31,3 +32,40 @@ def getTweetsByUser(userName, tweetNum=10):
 	url = twurl.augment(USER_URL,{'screen_name': userName, 'count': tweetNum})
 	
 	return getData(url)
+	
+def getFollowers(userName):
+	
+	url = twurl.augment(FOLLOWERS_URL,{'screen_name': userName})
+	
+	return getData(url)
+	
+def getFollowersNameList(userName):
+
+	users=getFollowers(userName)
+	
+	followersList=list()
+	
+	for user in users['users']:
+		followersList.append(user['screen_name'])
+		
+	return followersList
+		
+def getFollowersRecursively(userName, depth):
+	k=0
+	nameList=[userName]
+	userFollowers=list()
+	while k < depth:
+		for name in nameList:
+		
+			if name not in userFollowers:
+				nameList=getFollowersNameList(name)
+				userDict=dict()
+				userDict['name']=name
+				userDict['followers']=nameList
+				userFollowers.append(userDict)
+			
+		k+=1
+		
+	return userFollowers
+	
+	
