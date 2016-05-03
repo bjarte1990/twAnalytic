@@ -3,24 +3,14 @@ import json
 import time
 import twurl
 import re
-import locations
+import twitterHandler
 
 GOOGLEMAPS_URL='http://maps.googleapis.com/maps/api/geocode/json?'
 
-TWITTER_URL='https://api.twitter.com/1.1/search/tweets.json'
-
-def twitterLocation(query, tweetNum=10):
-	url = twurl.augment(TWITTER_URL,{'q': query, 'count': tweetNum})
-
-	#print 'Retrieving ',url
-
-	connection=urllib.urlopen(url)
-	data=connection.read().decode("utf-8","replace")
-	headers=connection.info().dict
-	js=json.loads(data)
-	#print json.dumps(js,indent=4)
-
-	statuses=js['statuses']
+def twitterLocation(content, tweetNum=10):
+	
+	tweetJson=twitterHandler.getTweetsByContent(content, tweetNum)
+	statuses=tweetJson['statuses']
 
 	locationList=[]
 	for tweet in statuses:
@@ -38,52 +28,65 @@ def twitterLocation(query, tweetNum=10):
 			#print '.....Encoding error.....\n'
 			continue
 			
-	print 'Remaining: ',headers['x-rate-limit-remaining']
 
 	return locationList
+ 
+def get_locations_by_content(content, tweetNum=10):
+    
+    tweetJson=twitterHandler.getTweetsByContent(content, tweetNum)
+    statuses=tweetJson['statuses']
 
-def getLatLong(addresses):
-	#Retrievs geocodes of given addresses using google maps API
-	locationData=[]
-	i=0
-	for a in addresses:
-		try:
-			i=i+1
-			if i==9:
-				i=0
-				time.sleep(10)
-			url=GOOGLEMAPS_URL+urllib.urlencode({'sensor':'false', 'address': a})
-			#print 'Retrieving ',url
-			html=urllib.urlopen(url).read()
+    locationList=[]
+    for tweet in statuses:
+        try:
+            location=tweet['user']['location'];
+            if location:
+                locationList.append(location)
+        except UnicodeEncodeError:
+            continue
+    
+    return locationList
 
-			#print 'Retrieved ',len(html),' characters'
-
-			info=json.loads(html)
-
-			if 'status' not in info or info['status'] != 'OK':
-				print '==== Failure To Retrieve ===='
-				print html
-			else:
-				data= info['results'][0]
-				
-				address=data['formatted_address']
-					
-				print 'Address: ',address
-				
-				location=data['geometry']['location']
-
-				print 'Lat: ',location['lat']," Long: ",location['lng']
-				
-				newData=dict()
-				newData['name']=address
-				newData['lat']=location['lat']
-				newData['long']=location['lng']
-				locationData.append(newData)
-		except UnicodeEncodeError:
-			print 'Encoding error...'
-			
-	return locationData
-	
+def get_lat_long(addresses):
+    #Retrievs geocodes of given addresses using google maps API
+    locationData=[]
+    i=0
+    for a in addresses:
+        try:
+            i=i+1
+            if i==9:
+                i=0
+                time.sleep(10)
+            url=GOOGLEMAPS_URL+urllib.urlencode({'sensor':'false', 'address': a})
+    		#print 'Retrieving ',url
+            html=urllib.urlopen(url).read()
+    
+            #print 'Retrieved ',len(html),' characters'
+            info=json.loads(html)
+    
+            if 'status' not in info or info['status'] != 'OK':
+                
+                print '==== Failure To Retrieve ===='
+                print html
+            else:
+                data = info['results'][0]
+    				
+                address=data['formatted_address']
+    					
+                print 'Address: ',address
+    				
+                location=data['geometry']['location']
+    
+                print 'Lat: ',location['lat']," Long: ",location['lng']
+                newData=dict()
+                newData['name']=address
+                newData['lat']=location['lat']
+                newData['long']=location['lng']
+                locationData.append(newData)
+        except UnicodeEncodeError:
+            print 'Encoding error...'
+    			
+    return locationData	
 #def loadData():
 #	with open('geoData.json') as dataFile:
 #		data=json.load(dataFile)
