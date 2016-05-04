@@ -1,23 +1,19 @@
 import locations
-import sys
 import twitterHandler
+import mapdrawer
 
-#query=str(sys.argv[1])
-#tweetNum=int(sys.argv[2])
+query="uber"
+tweetNum=1000
 
-#twData=locations.twitterLocation(query, tweetNum)
+tw_locs = locations.get_locations_by_content(query, tweetNum)
 
-#for tw in twData:
-#	print tw['tweet']
-#	print '\t'+tw['location']
+tweet_coords = locations.get_lat_long(tw_locs)
 
-#tweetsByUser=twitterHandler.getTweetsByUser('OW_Zoly',2)
-
-#print tweetsByUser
-
-userFollowers=twitterHandler.getFollowersRecursively('csaba_pigler',2)
-
-for user in userFollowers:
-	print user['name']
-	print user['followers']
-	print '---------------------------------------'
+lats = [];
+longs = [];
+for c in tweet_coords:
+    lats.append(c['lat'])
+    longs.append(c['long'])
+    
+map_drawer = mapdrawer.MapDrawer()
+map_drawer.draw_markers(lats, longs, query)
