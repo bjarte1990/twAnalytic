@@ -87,9 +87,6 @@ def get_lat_long(addresses):
             print 'Encoding error...'
     			
     return locationData	
-#def loadData():
-#	with open('geoData.json') as dataFile:
-#		data=json.load(dataFile)
-#	return data
+
 
 	
